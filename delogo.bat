@@ -1,21 +1,21 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM »ñÈ¡ÊÓÆµÎÄ¼şµÄ·Ö±æÂÊ
+REM è·å–è§†é¢‘æ–‡ä»¶çš„åˆ†è¾¨ç‡
 for /f "usebackq tokens=1,2 delims=x," %%a in (`ffprobe -v error -show_entries stream^=width^,height -of csv^=s^=x:p^=0 "%~1"`) do (
     set "img_width=%%a"
     set "img_height=%%b"
 )
 
-echo ÊÓÆµ³ß´çÎª£º%img_width%x%img_height%
+echo è§†é¢‘å°ºå¯¸ä¸ºï¼š%img_width%x%img_height%
 
 :loop
-REM ¸ù¾İÌáÊ¾ÊäÈëdelogeĞÅÏ¢xywh
-set /p input="ÇëÊäÈëdelogeĞÅÏ¢xywh£¨¸ñÊ½£ºx y w h£©£º"
+REM æ ¹æ®æç¤ºè¾“å…¥delogeä¿¡æ¯xywh
+set /p input="è¯·è¾“å…¥delogeä¿¡æ¯xywhï¼ˆæ ¼å¼ï¼šx y w hï¼‰ï¼š"
 
 if /i "%input%"=="exit" exit
 
-REM ¼ì²éÊäÈëĞÅÏ¢ÊÇ·ñÓĞĞ§
+REM æ£€æŸ¥è¾“å…¥ä¿¡æ¯æ˜¯å¦æœ‰æ•ˆ
 set "need_ffmpeg="
 for /f "tokens=1-4 delims= " %%a in ("%input%") do (
     set "img_x=%%a"
@@ -23,34 +23,36 @@ for /f "tokens=1-4 delims= " %%a in ("%input%") do (
     set "img_w=%%c"
     set "img_h=%%d"
     if !img_x! GTR !img_width! (
-        echo ÇëÖØĞÂÊäÈë£¬x²»ÄÜ³¬¹ı%img_width%¡£
+        echo è¯·é‡æ–°è¾“å…¥ï¼Œxä¸èƒ½è¶…è¿‡%img_width%ã€‚
         goto loop
     )
     if !img_y! LSS 0 (
-        echo ÇëÖØĞÂÊäÈë£¬y²»ÄÜĞ¡ÓÚ0¡£
+        echo è¯·é‡æ–°è¾“å…¥ï¼Œyä¸èƒ½å°äº0ã€‚
         goto loop
     )
     if !img_y! GTR !img_height! (
-        echo ÇëÖØĞÂÊäÈë£¬y²»ÄÜ³¬¹ı%img_height%¡£
+        echo è¯·é‡æ–°è¾“å…¥ï¼Œyä¸èƒ½è¶…è¿‡%img_height%ã€‚
         goto loop
     )
     if !img_w! GTR !img_width! (
-        echo ÇëÖØĞÂÊäÈë£¬w²»ÄÜ³¬¹ı%img_width%¡£
+        echo è¯·é‡æ–°è¾“å…¥ï¼Œwä¸èƒ½è¶…è¿‡%img_width%ã€‚
         goto loop
     )
     if !img_h! GTR !img_height! (
-        echo ÇëÖØĞÂÊäÈë£¬h²»ÄÜ³¬¹ı%img_height%¡£
+        echo è¯·é‡æ–°è¾“å…¥ï¼Œhä¸èƒ½è¶…è¿‡%img_height%ã€‚
         goto loop
     )
+    set "show=1"
+    if /i "!input:~-1!"=="0" set "show=0"
     if /i "!input:~-1!"=="y" set "need_ffmpeg=1"
 )
 
-REM ¸ù¾İĞèÒªµ÷ÓÃffplay»òffmpeg½øĞĞdeloge´¦Àí
+REM æ ¹æ®éœ€è¦è°ƒç”¨ffplayæˆ–ffmpegè¿›è¡Œdelogeå¤„ç†
 if defined need_ffmpeg (
     ffmpeg -i "%~1" -vf delogo=x=!img_x!:y=!img_y!:w=!img_w!:h=!img_h!:show=0 -c:a copy -b:v 1200k -y "%~dpn1_delogo.mp4"
     pause
     goto loop
 ) else (
-    ffplay -i "%~1" -vf delogo=x=!img_x!:y=!img_y!:w=!img_w!:h=!img_h!:show=1
+    ffplay -i "%~1" -vf delogo=x=!img_x!:y=!img_y!:w=!img_w!:h=!img_h!:show=!show!
     goto loop
 )
