@@ -3,31 +3,48 @@ const fs = require('fs');
 const path = require('path');
 
 async function fetchData() {
-  try {   
-    const response = await fetch('https://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=4ca11037d86f4131b46e0b5e1b15bd74&client=flash&im=0&tsp=1679475979&vn=2049&vc=C5EF012BF28EA7FB86FB4DE2CB2B95D0&uid=8E131D27B470F9CD737B936398E59547&wlan=');
-    if (!response.ok) {
-      throw new Error('Network response was not ok.');
-    }
-    const data = await response.json();
-    return data.video.chapters4.sort((a, b) => a.seq - b.seq).map(item => item.url); // °´ÕÕĞòºÅÅÅĞò²¢·µ»ØÊÓÆµµØÖ·
-  } catch (error) {
-    console.error('There has been a problem with your fetch operation:', error);
-  }
+  const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  return new Promise((resolve, reject) => {
+    readline.question('Enter the link:', async (url) => {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Network response was not ok.');
+        }
+        const data = await response.json();
+        resolve(data.video.chapters4.sort((a, b) => a.seq - b.seq).map(item => item.url)); // æŒ‰ç…§åºå·æ’åºå¹¶è¿”å›è§†é¢‘åœ°å€
+      } catch (error) {
+        console.error('There has been a problem with your fetch operation:', error);
+        reject(error);
+      } finally {
+        readline.close();
+      }
+    });
+  });
 }
 
 async function downloadVideos() {
-  const videos = await fetchData();
-  console.log(videos); // ´òÓ¡ËùÓĞÊÓÆµµØÖ·
+  const tempFolderPath = 'C:/Users/Administrator/Desktop/temp';
+  if (!fs.existsSync(tempFolderPath)) { // æ£€æŸ¥ç›®å½•æ˜¯å¦å­˜åœ¨
+    fs.mkdirSync(tempFolderPath); // å¦‚æœä¸å­˜åœ¨åˆ™åˆ›å»ºç›®å½•
+  }
 
-  const videoNames = []; // ¼ÇÂ¼ÊÓÆµÃû
-  // ´´½¨ÏÂÔØÈÎÎñ
+  const videos = await fetchData();
+  console.log(videos); // æ‰“å°æ‰€æœ‰è§†é¢‘åœ°å€
+
+  const videoNames = []; // è®°å½•è§†é¢‘å
+  // åˆ›å»ºä¸‹è½½ä»»åŠ¡
   const command = 'aria2c';
   const options = [
-    '-d', 'C:/Users/Administrator/Desktop/temp', // ÏÂÔØÄ¿Â¼
-    '-x4', '-s4', // ¶àÏß³ÌÏÂÔØ
+    '-d', 'C:/Users/Administrator/Desktop/temp', // ä¸‹è½½ç›®å½•
+    '-x4', '-s4', // å¤šçº¿ç¨‹ä¸‹è½½
   ];
 
-  const downloadTasks = videos.map((video, index) => { // ¼ÇÂ¼ÊÓÆµÃû²¢ÅÅĞò
+  const downloadTasks = videos.map((video, index) => { // è®°å½•è§†é¢‘åå¹¶æ’åº
     const videoName = `video-${index + 1}.mp4`;
     videoNames.push(videoName);
     const args = options.concat('-o', videoName, video);
@@ -49,17 +66,17 @@ async function downloadVideos() {
     });
   });
 
-  await Promise.all(downloadTasks); // µÈ´ıËùÓĞÊÓÆµÏÂÔØÍê³É
-  videoNames.sort(); // °´ÕÕÃû³ÆÅÅĞò
+  await Promise.all(downloadTasks); // ç­‰å¾…æ‰€æœ‰è§†é¢‘ä¸‹è½½å®Œæˆ
+  videoNames.sort(); // æŒ‰ç…§åç§°æ’åº
 
-  await mergeFiles(videoNames, 'C:/Users/Administrator/Desktop/temp'); // µ÷ÓÃºÏ²¢º¯Êı
+  await mergeFiles(videoNames, 'C:/Users/Administrator/Desktop/temp'); // è°ƒç”¨åˆå¹¶å‡½æ•°
 }
 
 
 function mergeFiles(videoNames, dir) {
-  const outputFile = 'output.mp4'; // ºÏ²¢ºóÊä³öÎÄ¼şµÄÂ·¾¶
+  const outputFile = 'output.mp4'; // åˆå¹¶åè¾“å‡ºæ–‡ä»¶çš„è·¯å¾„
 
-  const sortedFiles = videoNames.sort((a, b) => { // ¸ù¾İÊı×Ö´óĞ¡ÅÅĞò£¬²¢²¹È«Ç°µ¼0
+  const sortedFiles = videoNames.sort((a, b) => { // æ ¹æ®æ•°å­—å¤§å°æ’åºï¼Œå¹¶è¡¥å…¨å‰å¯¼0
     const regex = /(\d+)/;
     const aMatch = a.match(regex);
     const bMatch = b.match(regex);
@@ -72,19 +89,19 @@ function mergeFiles(videoNames, dir) {
     }
   });
 
-  const files = sortedFiles.map((name) => { // Ö»·µ»ØÎÄ¼şÃû³Æ
+  const files = sortedFiles.map((name) => { // åªè¿”å›æ–‡ä»¶åç§°
     return name;
   });
 
-  // ½«ÎÄ¼şÃû³ÆĞ´Èëµ½input.txtÎÄ¼şÖĞ
+  // å°†æ–‡ä»¶åç§°å†™å…¥åˆ°input.txtæ–‡ä»¶ä¸­
   const inputTxt = files.map((file) => {
-    return `file '${file.replace(/\\/g, '/')}'`; // Æ´½ÓÏà¶ÔÂ·¾¶
+    return `file '${file.replace(/\\/g, '/')}'`; // æ‹¼æ¥ç›¸å¯¹è·¯å¾„
   }).join('\n');
 
-  const inputTxtPath = './Desktop/temp/input.txt';
+  const inputTxtPath = 'C:/Users/Administrator/Desktop/temp/input.txt';
   fs.writeFileSync(inputTxtPath, inputTxt);
 
-  // Ê¹ÓÃffmpegºÏ²¢ÎÄ¼ş
+  // ä½¿ç”¨ffmpegåˆå¹¶æ–‡ä»¶
   const command = 'ffmpeg';
   const args = [
     '-f', 'concat',
