@@ -1,33 +1,38 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM Ñ­»·»ñÈ¡ÍÏ·ÅµÄÎÄ¼şÂ·¾¶
+REM å¾ªç¯è·å–æ‹–æ”¾çš„æ–‡ä»¶è·¯å¾„
 for %%G in (%*) do (
-	set "input_file=%%~G"
+    set "input_file=%%~G"
 
-	REM ½«Â·¾¶ÖĞµÄË«ÒıºÅÌæ»»Îª¿Õ¸ñ
-	set "input_file=!input_file:"= !"
+    REM å°†è·¯å¾„ä¸­çš„åŒå¼•å·æ›¿æ¢ä¸ºç©ºæ ¼
+    set "input_file=!input_file:"= !"
 
-	REM »ñÈ¡ÎÄ¼şÃûºÍÎÄ¼şËùÔÚÄ¿Â¼
-	for /f "delims=" %%a in ('echo "!input_file!"') do (
-		set file_path=%%~dpa
-		set file_name=%%~na
-	)
+    REM è·å–æ–‡ä»¶åå’Œæ–‡ä»¶æ‰€åœ¨ç›®å½•
+    for /f "delims=" %%a in ('echo "!input_file!"') do (
+        set file_path=%%~dpa
+        set file_name=%%~na
+    )
 
-	REM »ñÈ¡ÊÓÆµ×ÜÖ¡Êı
-	for /f "delims=" %%a in ('ffprobe -v error -select_streams v:0 -show_entries stream^=nb_frames -of default^=nokey^=1:noprint_wrappers^=1 "!input_file!"') do set total_frames=%%a
+    REM è·å–è§†é¢‘æ€»å¸§æ•°
+    for /f "delims=" %%a in ('ffprobe -v error -select_streams v:0 -show_entries stream^=nb_frames -of default^=nokey^=1:noprint_wrappers^=1 "!input_file!"') do set total_frames=%%a
 
-	IF !total_frames! EQU 0 (
-		echo Cannot generate thumbnail for !file_name!: Video has no frames.
-	) ELSE (
-		REM ¼ÆËã¼ä¸ôÖ¡Êı
-		set /a interval_frames=!total_frames!/16
+    IF !total_frames! EQU 0 (
+        echo Cannot generate thumbnail for !file_name!: Video has no frames.
+    ) ELSE (
+        REM è®¡ç®—é—´éš”å¸§æ•°
+        set /a interval_frames=!total_frames!/17
 
-		REM Éú³ÉËõÂÔÍ¼ÎÄ¼şÃû
-		set thumbnail_name=!file_name!_%%04d.png
+        REM æ’é™¤é™¤ä»¥0çš„å¼‚å¸¸æƒ…å†µ
+        if !interval_frames! EQU 0 (
+            set interval_frames=8700
+        )
 
-		REM Ê¹ÓÃFFmpegÉú³ÉËõÂÔÍ¼
-		ffmpeg -i "!input_file!" -vf "select='not(mod(n\,!interval_frames!))',scale=w=320:h=-2,tile=4x4" -frames:v 1 "!file_path!!thumbnail_name!"
-	)
+        REM ç”Ÿæˆç¼©ç•¥å›¾æ–‡ä»¶å
+        set thumbnail_name=!file_name!_%%04d.png
+
+        REM ä½¿ç”¨FFmpegç”Ÿæˆç¼©ç•¥å›¾
+        ffmpeg -i "!input_file!" -vf "select='not(mod(n\,!interval_frames!))',scale=w=320:h=-2,tile=4x4" -frames:v 1 "!file_path!!thumbnail_name!"
+    )
 )
 pause
