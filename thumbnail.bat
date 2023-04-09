@@ -15,17 +15,25 @@ for %%G in (%*) do (
     )
 
     REM 获取视频总帧数
-    for /f "delims=" %%a in ('ffprobe -v error -select_streams v:0 -show_entries stream^=nb_frames -of default^=nokey^=1:noprint_wrappers^=1 "!input_file!"') do set total_frames=%%a
+    for /f "delims=" %%a in ('ffprobe -v error -select_streams v -show_entries stream^=nb_frames -of default^=nokey^=1:noprint_wrappers^=1 "!input_file!"') do set total_frames=%%a
 
     IF !total_frames! EQU 0 (
         echo Cannot generate thumbnail for !file_name!: Video has no frames.
     ) ELSE (
         REM 计算间隔帧数
-        set /a interval_frames=!total_frames!/17
+        set /a interval_frames=!total_frames!/16
 
         REM 排除除以0的异常情况
         if !interval_frames! EQU 0 (
-            set interval_frames=8700
+		
+			REM 获取视频帧率
+			for /f "delims=" %%a in ('ffprobe -v error -select_streams v -of default -show_entries stream^=r_frame_rate "!input_file!"') do set frame_rate=%%a
+		
+			REM 如果帧率小于等于50，则设置间隔帧数为1800，否则为6000
+            set interval_frames=1800
+			if !frame_rate! GTR 50 (
+				set /a interval_frames=6000
+			)
         )
 
         REM 生成缩略图文件名
