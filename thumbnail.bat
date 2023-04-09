@@ -26,15 +26,15 @@ for %%G in (%*) do (
         REM 排除除以0的异常情况
         if !interval_frames! EQU 0 (
 		
-			REM 获取视频帧率
-			for /f "delims=" %%a in ('ffprobe -v error -select_streams v -of default -show_entries stream^=r_frame_rate "!input_file!"') do set frame_rate=%%a
+	    REM 获取视频帧率
+	    for /f "delims=" %%a in ('ffprobe -v error -select_streams v -of default -show_entries stream^=r_frame_rate "!input_file!"') do set frame_rate=%%a
 		
-			REM 如果帧率小于等于50，则设置间隔帧数为1800，否则为6000
+	    REM 如果帧率小于等于50，则设置间隔帧数为1800，否则为6000
             set interval_frames=1800
-			if !frame_rate! GTR 50 (
-				set /a interval_frames=6000
-			)
-        )
+	    if !frame_rate! GTR 50 (
+		set /a interval_frames=6000
+	    )
+       	)
 
         REM 生成缩略图文件名
         set thumbnail_name=!file_name!_%%04d.png
