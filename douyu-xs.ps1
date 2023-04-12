@@ -1,32 +1,20 @@
 $url = Read-Host "请输入链接："
 # $roomId = [regex]::Matches($ttAndSign, '(?<=getH5Play\/)\d+').Value
 
-# 提取 room 参数的值
-$pattern = "(?<=web-cph-0-)\d+(?=-)"
-if ($url -match $pattern) {
-    $room = $Matches[0]
-    # Write-Host "room: $room"
-} else {
-    Write-Host "无法匹配参数 room"
-}
-
-# 提取 tt 和 sign 参数的值
-$pattern = "sign=([-\w]+)&.*?tt=(\d+)"
-if ($url -match $pattern) {
-    $tt = $Matches[2]
-    $sign = $Matches[1]
-    # Write-Host "tt: $tt"
-    # Write-Host "sign: $sign"
-} else {
-    Write-Host "无法匹配参数 tt 和 sign"
-}
+# 提取 tt 和 sign 等参数的值
+$did = [regex]::Match($url, "(?<=did=)[^&]+").Value
+$sign = [regex]::Match($url, "(?<=sign=)[^&]+").Value
+$tt = [regex]::Match($url, "(?<=tt=)[^&]+").Value
+$v = [regex]::Match($url, "(?<=v=)[^&]+").Value
+$room = [regex]::Match($url, '(?<=token=web-cph-0-)\d+').Value
+# $room = [regex]::Match($url, "(?<=/)\d+(?=[^/]*$)").Value
 
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $session.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
-$session.Cookies.Add((New-Object System.Net.Cookie("dy_did", "653ce128e32a8862491385fe00061601", "/", ".douyu.com")))
-$session.Cookies.Add((New-Object System.Net.Cookie("acf_did", "653ce128e32a8862491385fe00061601", "/", "www.douyu.com")))
+$session.Cookies.Add((New-Object System.Net.Cookie("dy_did", "$did", "/", ".douyu.com")))
+$session.Cookies.Add((New-Object System.Net.Cookie("acf_did", "$did", "/", "www.douyu.com")))
 
-$requestUri = "https://www.douyu.com/lapi/live/getH5Play/$($room)?v=220120230412&did=653ce128e32a8862491385fe00061601&tt=$tt&sign=$sign&cdn=&rate=-1&ver=Douyu_222082905&iar=1&ive=0&hevc=0&fa=0"
+$requestUri = "https://www.douyu.com/lapi/live/getH5Play/$($room)?v=$v&did=$did&tt=$tt&sign=$sign&cdn=&rate=-1&ver=Douyu_222082905&iar=1&ive=0&hevc=0&fa=0"
 
 Write-Host $requestUri
 $headers = @{
