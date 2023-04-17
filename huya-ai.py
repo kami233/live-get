@@ -65,7 +65,6 @@ try:
     url = f"{domain}/{stream_name}.{suffix}?{anti_code}"
     now = datetime.now().strftime('%Y-%m-%d %H_%M')
     filename = f"{room_id}_{now}.flv"
-    print(filename)
     cmd = f'aria2c -o "{filename}" "{url}" --referer=https://www.huya.com/'
     subprocess.call(cmd, shell=True)
 except AttributeError:
