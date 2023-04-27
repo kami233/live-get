@@ -1,4 +1,4 @@
-$roomId = Read-Host "«Î ‰»Î∑øº‰∫≈"
+$roomId = Read-Host "Enter the room"
 Add-Type -AssemblyName System.Web
 $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
 $session.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36"
