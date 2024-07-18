@@ -19,7 +19,7 @@
         /shark-file-loader_[a-f0-9]+\.js/,
         /playerInit-room_[a-f0-9]+\.js/,
         /webm-pc-vendor_[a-f0-9]+\.js/,
-		/room-webm_[a-f0-9]+\.js/
+	/room-webm_[a-f0-9]+\.js/
     ];
 
     function shouldAllowRequest(details) {
